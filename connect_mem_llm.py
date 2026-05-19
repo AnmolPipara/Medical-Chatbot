@@ -1,0 +1,64 @@
+#step 1 : Setup LLM (llama with HF)
+#step 2 : loading vector database (Faiss)
+
+import os
+
+from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_core.prompts import PromptTemplate
+from langchain_classic.chains import RetrievalQA
+import os 
+from dotenv import load_dotenv
+load_dotenv()
+
+HF_TOKEN = os.environ.get("HF_TOKEN")
+
+
+huggingface_repo_id = "meta-llama/Llama-3.1-8B-Instruct"
+
+def load_llm(huggingface_repo_id):
+
+    llm = HuggingFaceEndpoint(
+        repo_id=huggingface_repo_id,
+        huggingfacehub_api_token=HF_TOKEN,
+        task="conversational",
+        temperature=0.5,
+        max_new_tokens=512
+    )
+
+    chat_model = ChatHuggingFace(llm=llm)
+
+    return chat_model
+DB_FAISS_PATH = "vectorstore/db_faiss"
+custom_prompt_template = """
+Use the pieces of information provided in the context to answer user's question.
+If you dont know the answer, just say that you dont know, dont try to make up an answer.
+Dont provide anything out of the given context.
+
+Context: {context}
+Question: {question}
+
+Start the answer directly. No small talk please.
+"""
+
+def set_custom_prompt(custom_prompt_template):
+    prompt = PromptTemplate(template=custom_prompt_template, input_variables=["context", "question"])
+    return prompt
+
+
+embedding = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+db = FAISS.load_local(DB_FAISS_PATH, embedding , allow_dangerous_deserialization=True)
+
+qa_chain = RetrievalQA.from_chain_type(llm=load_llm(huggingface_repo_id=huggingface_repo_id),
+                                       chain_type="stuff", 
+                                       retriever=db.as_retriever(search_kwargs={"k": 3} ),
+                                       return_source_documents=True,
+                                       chain_type_kwargs={"prompt": set_custom_prompt(custom_prompt_template=custom_prompt_template)})
+
+
+user_query = input("Ask your question: ")
+response = qa_chain.invoke(user_query)
+
+print(f"Answer: {response['result']}")
+print(f"Source Documents: {response['source_documents']}")
