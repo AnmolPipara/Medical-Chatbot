@@ -7,4 +7,7 @@ __pycache__/
 *$py.class
 
 # Vector store
-vectorstore/
+vectorstore/*
+!vectorstore/db_faiss/
+!vectorstore/db_faiss/index.faiss
+!vectorstore/db_faiss/index.pkl
