@@ -12,9 +12,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_huggingface import HuggingFaceEndpoint , ChatHuggingFace
 
 
-## Uncomment the following files if you're not using pipenv as your virtual environment manager
-#from dotenv import load_dotenv, find_dotenv
-#load_dotenv(find_dotenv())
+
 
 HF_TOKEN=os.environ.get("HF_TOKEN") 
 DB_FAISS_PATH="vectorstore/db_faiss"
@@ -96,36 +94,9 @@ def main():
 
         except Exception as e:
             st.error(f"Error: {str(e)}")
-        # #TODO: Create a Groq API key and add it to .env file
+     
         
-        # try: 
-        #     vectorstore=get_vectorstore()
-        #     if vectorstore is None:
-        #         st.error("Failed to load the vector store")
-
-        #     qa_chain = RetrievalQA.from_chain_type(
-        #         llm=ChatGroq(
-        #             model_name="meta-llama/llama-4-maverick-17b-128e-instruct",  # free, fast Groq-hosted model
-        #             temperature=0.0,
-        #             groq_api_key=os.environ["GROQ_API_KEY"],
-        #         ),
-        #         chain_type="stuff",
-        #         retriever=vectorstore.as_retriever(search_kwargs={'k':3}),
-        #         return_source_documents=True,
-        #         chain_type_kwargs={'prompt': set_custom_prompt(CUSTOM_PROMPT_TEMPLATE)}
-        #     )
-
-        #     response=qa_chain.invoke({'query':prompt})
-
-        #     result=response["result"]
-        #     source_documents=response["source_documents"]
-        #     result_to_show=result+"\nSource Docs:\n"+str(source_documents)
-        #     #response="Hi, I am MediBot!"
-        #     st.chat_message('assistant').markdown(result_to_show)
-        #     st.session_state.messages.append({'role':'assistant', 'content': result_to_show})
-
-        # except Exception as e:
-        #     st.error(f"Error: {str(e)}")
+      
 
 if __name__ == "__main__":
     main()
